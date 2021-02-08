@@ -11,10 +11,19 @@ var https = require('https');
 //文件操作类
 var fs = require('fs');
 //读取密钥和签名证书
+// var path = process.cwd();
+// console.log(path);
+let path = require('path');
+let key_path = path.resolve(__dirname, 'keys/server.key')
+let crt_path = path.resolve(__dirname, 'keys/server.crt')
 var options = {
-  key: fs.readFileSync('keys/server.key'),
-  cert: fs.readFileSync('keys/server.crt')
+  key: fs.readFileSync(key_path),
+  cert: fs.readFileSync(crt_path)
 }
+// var options = {
+//   key: fs.readFileSync('keys/server.key'),
+//   cert: fs.readFileSync('keys/server.crt')
+// }
 //socket.io类
 var socketIO = require('socket.io');
 
