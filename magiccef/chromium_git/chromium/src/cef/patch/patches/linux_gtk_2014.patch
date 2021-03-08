@@ -1,0 +1,62 @@
+diff --git chrome/browser/ui/views/chrome_browser_main_extra_parts_views_linux.cc chrome/browser/ui/views/chrome_browser_main_extra_parts_views_linux.cc
+index 07f06ac694f5..831fd9f82dbe 100644
+--- chrome/browser/ui/views/chrome_browser_main_extra_parts_views_linux.cc
++++ chrome/browser/ui/views/chrome_browser_main_extra_parts_views_linux.cc
+@@ -6,6 +6,7 @@
+ 
+ #include "base/bind.h"
+ #include "base/run_loop.h"
++#include "cef/libcef/features/features.h"
+ #include "chrome/browser/chrome_browser_main.h"
+ #include "chrome/browser/profiles/profile.h"
+ #include "chrome/browser/themes/theme_service.h"
+@@ -29,6 +30,7 @@
+ 
+ namespace {
+ 
++#if !BUILDFLAG(ENABLE_CEF)
+ ui::NativeTheme* GetNativeThemeForWindow(aura::Window* window) {
+   if (!window)
+     return nullptr;
+@@ -53,6 +55,7 @@ ui::NativeTheme* GetNativeThemeForWindow(aura::Window* window) {
+ 
+   return ui::NativeTheme::GetInstanceForNativeUi();
+ }
++#endif  // !BUILDFLAG(ENABLE_CEF)
+ 
+ }  // namespace
+ 
+@@ -67,9 +70,11 @@ void ChromeBrowserMainExtraPartsViewsLinux::PreEarlyInitialization() {
+   if (!linux_ui)
+     return;
+ 
++#if !BUILDFLAG(ENABLE_CEF)
+   linux_ui->SetNativeThemeOverride(
+       base::BindRepeating(&GetNativeThemeForWindow));
+   views::LinuxUI::SetInstance(linux_ui);
++#endif
+ }
+ 
+ void ChromeBrowserMainExtraPartsViewsLinux::ToolkitInitialized() {
+diff --git chrome/test/BUILD.gn chrome/test/BUILD.gn
+index 3010ca862ab0..10f7c341be43 100644
+--- chrome/test/BUILD.gn
++++ chrome/test/BUILD.gn
+@@ -4285,7 +4285,7 @@ test("unit_tests") {
+   if (use_gio) {
+     configs += [ "//build/linux:gio_config" ]
+   }
+-  if (!is_chromeos && !use_ozone && is_linux) {
++  if (!is_chromeos && !use_ozone && is_linux && use_gtk) {
+     deps += [ "//chrome/browser/ui/libgtkui" ]
+   }
+ 
+@@ -5286,7 +5286,7 @@ if (!is_android) {
+           # suites, it seems like one or another starts timing out too.
+           "../browser/ui/views/keyboard_access_browsertest.cc",
+         ]
+-        if (!use_ozone) {
++        if (!use_ozone && use_gtk) {
+           sources += [
+             "../browser/ui/libgtkui/select_file_dialog_interactive_uitest.cc",
+           ]

@@ -1,0 +1,31 @@
+diff --git chrome/browser/BUILD.gn chrome/browser/BUILD.gn
+index 4f9844f6f854..24550416990d 100644
+--- chrome/browser/BUILD.gn
++++ chrome/browser/BUILD.gn
+@@ -9,6 +9,7 @@ import("//build/config/jumbo.gni")
+ import("//build/config/linux/gtk/gtk.gni")
+ import("//build/config/ui.gni")
+ import("//build/split_static_library.gni")
++import("//cef/libcef/features/features.gni")
+ import("//chrome/common/features.gni")
+ import("//components/feature_engagement/features.gni")
+ import("//components/feed/features.gni")
+@@ -1849,6 +1850,7 @@ jumbo_split_static_library("browser") {
+     "//base/allocator:buildflags",
+     "//base/util/values:values_util",
+     "//cc",
++    "//cef/libcef/features",
+     "//chrome:extra_resources",
+     "//chrome:resources",
+     "//chrome:strings",
+@@ -2154,6 +2156,10 @@ jumbo_split_static_library("browser") {
+     ]
+   }
+ 
++  if (enable_cef) {
++    configs += [ "//cef/libcef/features:config" ]
++  }
++
+   if (is_android) {
+     sources += [
+       "after_startup_task_utils_android.cc",

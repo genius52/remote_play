@@ -1,0 +1,71 @@
+diff --git content/browser/blob_storage/chrome_blob_storage_context.cc content/browser/blob_storage/chrome_blob_storage_context.cc
+index 94588aa5822d..1c16a71c4524 100644
+--- content/browser/blob_storage/chrome_blob_storage_context.cc
++++ content/browser/blob_storage/chrome_blob_storage_context.cc
+@@ -117,7 +117,8 @@ ChromeBlobStorageContext* ChromeBlobStorageContext::GetFor(
+ 
+     // If we're not incognito mode, schedule all of our file tasks to enable
+     // disk on the storage context.
+-    if (!context->IsOffTheRecord() && io_thread_valid) {
++    if (!context->GetPath().empty() && !context->IsOffTheRecord() &&
++        io_thread_valid) {
+       file_task_runner = base::CreateTaskRunnerWithTraits(
+           {base::MayBlock(), base::TaskPriority::BEST_EFFORT,
+            base::TaskShutdownBehavior::SKIP_ON_SHUTDOWN});
+diff --git content/browser/browser_context.cc content/browser/browser_context.cc
+index 0d95af0ef882..463709a9152f 100644
+--- content/browser/browser_context.cc
++++ content/browser/browser_context.cc
+@@ -57,6 +57,7 @@
+ #include "content/public/common/content_switches.h"
+ #include "content/public/common/service_manager_connection.h"
+ #include "content/public/common/service_names.mojom.h"
++#include "media/capabilities/in_memory_video_decode_stats_db_impl.h"
+ #include "media/base/media_switches.h"
+ #include "media/capabilities/in_memory_video_decode_stats_db_impl.h"
+ #include "media/capabilities/video_decode_stats_db_impl.h"
+@@ -213,7 +214,7 @@ StoragePartition* GetStoragePartitionFromConfig(
+   StoragePartitionImplMap* partition_map =
+       GetStoragePartitionMap(browser_context);
+ 
+-  if (browser_context->IsOffTheRecord())
++  if (browser_context->IsOffTheRecord() || browser_context->GetPath().empty())
+     in_memory = true;
+ 
+   return partition_map->Get(partition_domain, partition_name, in_memory,
+@@ -795,7 +796,7 @@ media::VideoDecodePerfHistory* BrowserContext::GetVideoDecodePerfHistory() {
+         kUseInMemoryDBDefault);
+ 
+     std::unique_ptr<media::VideoDecodeStatsDB> stats_db;
+-    if (use_in_memory_db) {
++    if (use_in_memory_db || GetPath().empty()) {
+       stats_db =
+           std::make_unique<media::InMemoryVideoDecodeStatsDBImpl>(nullptr);
+     } else {
+diff --git content/browser/renderer_host/render_process_host_impl.cc content/browser/renderer_host/render_process_host_impl.cc
+index 67ec1115d928..02cf9cb0e482 100644
+--- content/browser/renderer_host/render_process_host_impl.cc
++++ content/browser/renderer_host/render_process_host_impl.cc
+@@ -2202,6 +2202,9 @@ void RenderProcessHostImpl::RegisterMojoInterfaces() {
+     plugin_registry_.reset(
+         new PluginRegistryImpl(GetBrowserContext()->GetResourceContext()));
+   }
++  // Needed for proper routing of IsPluginAvailable callbacks.
++  DCHECK_GE(GetID(), 0);
++  plugin_registry_->set_render_process_id(GetID());
+   registry->AddInterface(base::BindRepeating(
+       &PluginRegistryImpl::Bind, base::Unretained(plugin_registry_.get())));
+ #endif
+diff --git storage/browser/database/database_tracker.cc storage/browser/database/database_tracker.cc
+index 18f8b0a11438..a10ab23aaceb 100644
+--- storage/browser/database/database_tracker.cc
++++ storage/browser/database/database_tracker.cc
+@@ -509,7 +509,7 @@ bool DatabaseTracker::LazyInit() {
+     meta_table_.reset(new sql::MetaTable());
+ 
+     is_initialized_ =
+-        base::CreateDirectory(db_dir_) &&
++        (is_incognito_ ? true : base::CreateDirectory(db_dir_)) &&
+         (db_->is_open() ||
+          (is_incognito_ ? db_->OpenInMemory() :
+           db_->Open(kTrackerDatabaseFullPath))) &&
