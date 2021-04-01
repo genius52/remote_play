@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no">
-    <title>WebRtc视频聊天室</title>
+    <title>播放端</title>
     <script type="text/javascript" src="js/socket.io.js"></script>
     <script type="text/javascript" charset="utf-8">
         /** 信令 注：一条Socket连接*/
@@ -36,10 +36,12 @@
         /** UI操作 */
         //创建并加入聊天室
         function createAndJoinRoom() {
-            var roomName = $('roomName').value;
+            //var roomName = $('roomName').value;
+            var roomName = 9527
+            var gameid = $('gameid').value;
             if (roomName) {
                 //【createAndJoinRoom】  创建并加入Room中 [room]
-                socket.emit('createAndJoinRoom', { room: roomName })
+                socket.emit('createAndJoinRoom', { room: roomName,gameid:gameid })
             } else {
                 console.log('请输入聊天室名');
             }
@@ -107,7 +109,7 @@
                 //设置获取icecandidate信息回调
                 pc.onicecandidate = e => onIceCandidate(pc, socketId, e);
                 // //设置获取对端stream数据回调--stream方式
-                // pc.onaddstream = e => onAddStream(pc, socketId, e);
+                pc.onaddstream = e => onAddStream(pc, socketId, e);
                 // if (localStream != null) {
                 //     //peer设置本地流
                 //     pc.addStream(localStream);
@@ -317,7 +319,7 @@
             console.log('exit: ' + JSON.stringify(data));
             //判断是否为当前连接 
             var pc = rtcConnects[data.from];
-            if (typeof (pc) == 'undefined') {
+            if (typeof (pc) == 'undefined') { 
                 return;
             } else {
                 //peer关闭
@@ -355,7 +357,8 @@
 </head>
 
 <body>
-    <input type="text" id="roomName" placeholder="请填写Room名称" />
+    <!-- <input type="text" id="roomName" placeholder="请填写Room名称" /> -->
+    <input type="text" id="gameid" placeholder="请填写gameid" />
     <br/>
     <button id="createAndJoinRoom" onclick="createAndJoinRoom()">createAndJoinRoom</button>
     <br/>

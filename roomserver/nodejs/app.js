@@ -71,6 +71,11 @@ io.sockets.on('connection', function (socket) {
   //【createAndJoinRoom】  创建并加入Room中 [room]
   socket.on('createAndJoinRoom', function (message) {
     var room = message.room;
+    var gameid = -1;
+    if (message.gameid) {
+      gameid = message.gameid;
+    }
+
     console.log('Received createAndJoinRoom：' + room);
     //判断room是否存在
     var clientsInRoom = io.sockets.adapter.rooms[room];
@@ -91,6 +96,8 @@ io.sockets.on('connection', function (socket) {
       data.id = socket.id;
       //room id
       data.room = room;
+      if(gameid != -1)
+        data.gameid = gameid;
       //其他连接 为空
       data.peers = [];
       //发送
@@ -101,6 +108,8 @@ io.sockets.on('connection', function (socket) {
       var data = {};
       //socket id
       data.id = socket.id;
+      if(gameid != -1)
+      data.gameid = gameid;
       //room id
       data.room = room;
       //发送房间内其他客户端
@@ -111,6 +120,8 @@ io.sockets.on('connection', function (socket) {
       var data = {};
       //socket id
       data.id = socket.id;
+      if(gameid != -1)
+        data.gameid = gameid;
       //room id
       data.room = room;
       //其他连接
