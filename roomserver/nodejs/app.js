@@ -76,7 +76,7 @@ io.sockets.on('connection', function (socket) {
       gameid = message.gameid;
     }
 
-    console.log('Received createAndJoinRoom：' + room);
+    console.log('Received createAndJoinRoom：' + room); 
     //判断room是否存在
     var clientsInRoom = io.sockets.adapter.rooms[room];
     var numClients = clientsInRoom ? Object.keys(clientsInRoom.sockets).length : 0;

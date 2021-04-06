@@ -11,14 +11,13 @@
         //var socket = io('ws://172.16.70.226:8081');
         //var socket = io('wss://172.16.70.226:8443');
         //var socket = io('wss://localhost:8443');
-        //var socket = io('wss://10.4.178.1:8443');
         var socket = io('wss://127.0.0.1:8443');
         //本地socket id
         var socketId;
         //room id
         var roomId;
 
-        var g_data;
+        var global_pc;
         /** RTCPeerConnection 注：视频聊天室内有几个其他客户端则有几条RTCPeerConnection连接*/
         //存储RTCPeerConnection连接
         var rtcConnects = {};
@@ -82,7 +81,6 @@
                 pc.onicecandidate = e => onIceCandidate(pc, socketId, e);
                 // //设置获取对端stream数据回调--stream方式
                 // pc.onaddstream = e => onAddStream(pc, socketId, e);
-                console.log("pc.addStream");
                 // if (localStream != null) {
                 //     //peer设置本地流
                 //     pc.addStream(localStream);
@@ -112,15 +110,16 @@
                 pc.ontrack = e => onTrack(pc, socketId, e);
                 if (localStream != null) {
                     //peer设置本地流
-                    // localStream.getTracks().forEach(function(track) {
-                    //      pc.addTrack(track, localStream);
-                    // });
+                    localStream.getTracks().forEach(function(track) {
+                         pc.addTrack(track, localStream);
+                    });
                 }
                 //设置获取对端stream数据回调
                 pc.onremovestream = e => onRemoveStream(pc, socketId, e);
                 //保存peer连接
                 rtcConnects[socketId] = pc;
             }
+            global_pc = pc;
             return pc;
         }
 
@@ -129,12 +128,11 @@
             delete rtcConnects[socketId];
         }
 
-        //绑定本地摄像头流至video展示,这里仅做调试，实际不需要显示
+        //绑定本地摄像头流至video展示
         function gotStream(stream) {
             console.log('Received local stream');
             $('localVideo').srcObject = stream;
             localStream = stream;
-            getOrCreateRtcConnect(g_data.from);
         }
 
         /** WebRtc RTCPeerConnection 事件回调 */
@@ -210,11 +208,6 @@
             message.room = roomId;
             message.sdp = offer.sdp;
             socket.emit('offer', message);
-
-                if (localStream != null) {
-                    //peer设置本地流
-                    pc.addStream(localStream);
-                }
         }
 
         //offer创建失败回调
@@ -270,26 +263,24 @@
         //joined [id,room]
         socket.on('joined', function (data) {
             console.log('joined: ' + JSON.stringify(data));
-            //根据gameid打开单独的游戏窗口
+            //startCamera();
+            //构建Peer
+            getOrCreateRtcConnect(data.from);
             if(data.gameid){
                 window.open("https://www.baidu.com");
 
                 g_data = data;
                 setTimeout(function () {
                     sharegamewindow();
-                    
-                }, 1000);
-                // setTimeout(function () {
-                //     getOrCreateRtcConnect(data.from);
-                // }, 4000);
+                }, 1000);  
                 
+                setTimeout(function () {
+                    if (localStream != null) {
+                        //peer设置本地流
+                        global_pc.addStream(localStream);
+                    }
+                }, 3000);  
             }
-            //windows.open("gameurl");
-            //捕捉上面打开的游戏窗口
-
-            
-            //此时和客户端的连接应该还未完成
-            //构建Peer
         })
 
         //offer [from,to,room,sdp]
@@ -372,25 +363,26 @@
                 navigator.mediaDevices.getDisplayMedia({
                     audio: true,       
                     video: true,
+                    gameid:'1234'
                 }).then(stream => gotStream(stream)).catch(e => alert(`getDisplayMedia() error: ${e.name}`));
-                // var p = navigator.mediaDevices.getDisplayMedia({audio: true,video: true});
             }
         }
-        createAndJoinRoom();
+	//createAndJoinRoom();
         //初始启动摄像头
         //startCamera();
     </script>
 </head>
 
 <body>
-    <!-- <input type="text" id="roomName" placeholder="请填写Room名称" /> -->
+    <!-- <input type="text" id="roomName" placeholder="请填写Room名称" />
+    <br/> -->
+    <button id="createAndJoinRoom" onclick="createAndJoinRoom()">createAndJoinRoom</button>
     <br/>
-    <!-- <button id="createAndJoinRoom" onclick="createAndJoinRoom()">createAndJoinRoom</button> -->
-    <br/>
+	<textarea id="dataChannelReceive"></textarea>
     <button id="exit" onclick="exit()">exit</button>
     <br/>
 
-    <textarea id="dataChannelReceive"></textarea>
+
 
     <video id="localVideo" style='width:800;height:600;' autoplay></video>
     <br/>
