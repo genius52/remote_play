@@ -97,6 +97,7 @@
             if (typeof (pc) == 'undefined') {
                 //构建RTCPeerConnection
                 pc = new RTCPeerConnection(config);
+                pc.onaddstream = e => onAddStream(pc, socketId, e);
                 channel = pc.createDataChannel("chat");
 
                 channel.onopen = function(event){
@@ -109,7 +110,7 @@
                 //设置获取icecandidate信息回调
                 pc.onicecandidate = e => onIceCandidate(pc, socketId, e);
                 // //设置获取对端stream数据回调--stream方式
-                pc.onaddstream = e => onAddStream(pc, socketId, e);
+
                 // if (localStream != null) {
                 //     //peer设置本地流
                 //     pc.addStream(localStream);
@@ -337,19 +338,19 @@
         }
 
         //启动摄像头
-        function startCamera() {
-            //启动摄像头
-            if (localStream == null) {
-                if (navigator.mediaDevices != null)
-                navigator.mediaDevices
-                    .getUserMedia({
-                        audio: true,
-                        video: true
-                    })
-                    .then(stream => gotStream(stream))
-                    .catch(e => alert('getUserMedia() error: ${e.name}'));
-            }
-        }
+        // function startCamera() {
+        //     //启动摄像头
+        //     if (localStream == null) {
+        //         if (navigator.mediaDevices != null)
+        //         navigator.mediaDevices
+        //             .getUserMedia({
+        //                 audio: true,
+        //                 video: true
+        //             })
+        //             .then(stream => gotStream(stream))
+        //             .catch(e => alert('getUserMedia() error: ${e.name}'));
+        //     }
+        // }
 
         //初始启动摄像头
         //startCamera();
