@@ -81,10 +81,6 @@
                 pc.onicecandidate = e => onIceCandidate(pc, socketId, e);
                 // //设置获取对端stream数据回调--stream方式
                 // pc.onaddstream = e => onAddStream(pc, socketId, e);
-                // if (localStream != null) {
-                //     //peer设置本地流
-                //     pc.addStream(localStream);
-                // }
 
 
                 pc.ondatachannel = function(event) {
@@ -248,10 +244,10 @@
             for (let i = 0; i < data.peers.length; i++) {
                 var otherSocketId = data.peers[i].id;
                 //创建WebRtcPeerConnection
-                var pc = getOrCreateRtcConnect(otherSocketId);
+                //var pc = getOrCreateRtcConnect(otherSocketId);
                 //设置offer
-                const offer = await pc.createOffer(offerOptions);//pc.createOffer(offerOptions).then(offer => onCreateOfferSuccess(pc, otherSocketId, offer), error => onCreateOfferError(pc, otherSocketId, error));
-                onCreateOfferSuccess(pc, otherSocketId, offer);
+                //const offer = await pc.createOffer(offerOptions);//pc.createOffer(offerOptions).then(offer => onCreateOfferSuccess(pc, otherSocketId, offer), error => onCreateOfferError(pc, otherSocketId, error));
+                //onCreateOfferSuccess(pc, otherSocketId, offer);
                 //闭包解决方式
                 // (function(pc, otherSocketId){
                 //     pc.createOffer(offerOptions).then(offer => onCreateOfferSuccess(pc, otherSocketId, offer), error => onCreateOfferError(pc, otherSocketId, error));
@@ -265,7 +261,7 @@
             console.log('joined: ' + JSON.stringify(data));
             //startCamera();
             //构建Peer
-            getOrCreateRtcConnect(data.from);
+            //getOrCreateRtcConnect(data.from);
             if(data.gameid){
                 var w = window.open("https://www.baidu.com");
                 w.focus();
@@ -273,14 +269,7 @@
                 g_data = data;
                 setTimeout(function () {
                     sharegamewindow();
-                }, 1000);  
-                
-                setTimeout(function () {
-                    if (localStream != null) {
-                        //peer设置本地流
-                        global_pc.addStream(localStream);
-                    }
-                }, 3000);  
+                }, 1000);
             }
         })
 
